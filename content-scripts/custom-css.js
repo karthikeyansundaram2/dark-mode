@@ -22,7 +22,9 @@ extension.styles = {
 extension.styles.create = function () {
 	var style = document.createElement('style');
 
-	document.head.appendChild(style);
+	(document.head || document.documentElement).appendChild(style);
+
+	extension.guard.elements.push(style);
 
 	return style;
 };
@@ -42,6 +44,12 @@ extension.styles.update = function () {
 
 		extension.styles.elements.global.textContent = global_styles;
 	} else if (extension.styles.elements.global) {
+		var index = extension.guard.elements.indexOf(extension.styles.elements.global);
+
+		if (index !== -1) {
+			extension.guard.elements.splice(index, 1);
+		}
+
 		extension.styles.elements.global.remove();
 
 		delete extension.styles.elements.global;

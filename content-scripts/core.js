@@ -165,12 +165,85 @@ extension.allowTransitions = function () {
 };
 
 extension.allowColors = function (value) {
+	extension.guard.attributes['dm-allow-colors'] = '';
+
 	document.documentElement.setAttribute('dm-allow-colors', '');
 };
 
 extension.disallowColors = function (value) {
+	delete extension.guard.attributes['dm-allow-colors'];
+
 	document.documentElement.removeAttribute('dm-allow-colors');
 };
+
+
+/*--------------------------------------------------------------
+# GUARD
+----------------------------------------------------------------
+Some websites (e.g. theglobeandmail.com) re-render <html>/<head>
+after load and wipe the attributes and <style> elements injected
+by the extension. The guard restores them when that happens.
+--------------------------------------------------------------*/
+
+extension.guard = {
+	attributes: {},
+	elements: []
+};
+
+extension.guard.setAttribute = function (name, value) {
+	extension.guard.attributes[name] = value;
+
+	document.documentElement.setAttribute(name, value);
+};
+
+extension.guard.removeAttribute = function (name) {
+	delete extension.guard.attributes[name];
+
+	document.documentElement.removeAttribute(name);
+};
+
+extension.guard.restore = function () {
+	var html = document.documentElement,
+		attributes = extension.guard.attributes,
+		elements = extension.guard.elements;
+
+	for (var name in attributes) {
+		if (html.getAttribute(name) !== attributes[name]) {
+			html.setAttribute(name, attributes[name]);
+		}
+	}
+
+	for (var i = 0, l = elements.length; i < l; i++) {
+		var element = elements[i];
+
+		if (element.isConnected === false) {
+			(document.head || html).appendChild(element);
+		}
+	}
+
+	if (extension.guard.head !== document.head) {
+		extension.guard.observeHead();
+	}
+};
+
+extension.guard.observeHead = function () {
+	extension.guard.head = document.head;
+
+	if (extension.guard.head) {
+		extension.guard.observer.observe(extension.guard.head, {
+			childList: true
+		});
+	}
+};
+
+extension.guard.observer = new MutationObserver(extension.guard.restore);
+
+extension.guard.observer.observe(document.documentElement, {
+	attributes: true,
+	childList: true
+});
+
+extension.guard.observeHead();
 
 extension.init = function () {
 	extension.ready++;

@@ -91,9 +91,9 @@ extension.filters = function (changed) {
 
 			extension.allowColors();
 
-			html.setAttribute('dm-invert-colors', 'true');
+			extension.guard.setAttribute('dm-invert-colors', 'true');
 		} else {
-			html.removeAttribute('dm-invert-colors');
+			extension.guard.removeAttribute('dm-invert-colors');
 
 			if (theme === 'dynamic' && extension.websiteHasDarkTheme === false) {
 				extension.dynamicFilter.activate();
